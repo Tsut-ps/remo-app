@@ -1,3 +1,5 @@
+<img width="1496" height="756" alt="image" src="https://github.com/user-attachments/assets/88019e22-ff5d-4249-af9e-f76ec02910cf" />
+
 # Nature Remo Controller
 
 Nature Remo を使って家電をブラウザから操作する Web アプリ  
