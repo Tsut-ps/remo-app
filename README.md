@@ -1,15 +1,16 @@
 # Nature Remo Controller
 
-Nature Remo Mini を使って家電をブラウザから操作する Web アプリ。
+Nature Remo を使って家電をブラウザから操作する Web アプリ  
+(Nature Remo Mini で動作検証済み)
 
 ## 機能
 
 - 🏠 **家電一覧表示** - 登録されている全ての家電を表示
 - 💡 **照明操作** - ON/OFF、明るさ調整
 - ❄️ **エアコン操作** - 温度、モード、風量、風向の設定
-- 📺 **TV 操作** - 電源、音量、チャンネル操作
-- 📡 **IR リモコン** - カスタム赤外線信号の送信
-- 🔑 **API キー管理** - ブラウザに安全に保存
+- 📺 **TV 操作** - 電源、音量、チャンネル操作 (動作未確認)
+- 📡 **IR リモコン** - カスタム赤外線信号の送信 (動作未確認)
+- 🔑 **API キー管理** - ブラウザのみに保存するので安全
 
 ## ローカル開発
 
@@ -28,16 +29,8 @@ npm run dev
 ### 自動デプロイ（推奨）
 
 1. GitHub リポジトリを作成
-2. コードをプッシュ:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/remo-app.git
-   git push -u origin main
-   ```
-3. GitHub リポジトリの設定:
+2. コードをプッシュ
+3. GitHub リポジトリの設定
    - **Settings** → **Pages** → **Source** で "GitHub Actions" を選択
 4. `main` ブランチにプッシュすると自動でデプロイされます
 
@@ -64,4 +57,4 @@ npm run build
 
 ## ライセンス
 
-MIT
+Claude と片手間にサッと書いただけなので The Unlicense とします
