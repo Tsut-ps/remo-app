@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const NATURE_API_BASE = "https://api.nature.global/1";
+import { API_ENDPOINTS, getAuthHeaders } from "@/lib/config";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const clientApiKey = request.headers.get("X-Nature-Api-Key");
-  const apiKey = clientApiKey || process.env.NATURE_API_KEY;
+  const apiKey = request.headers.get("X-Nature-Api-Key");
   const { id } = await params;
 
   if (!apiKey) {
@@ -44,17 +42,14 @@ export async function POST(
       formParams.append("air_direction_h", air_direction_h);
     if (button !== undefined) formParams.append("button", button);
 
-    const response = await fetch(
-      `${NATURE_API_BASE}/appliances/${id}/aircon_settings`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: formParams,
-      }
-    );
+    const response = await fetch(API_ENDPOINTS.aircon(id), {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(apiKey),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formParams,
+    });
 
     if (!response.ok) {
       const errorText = await response.text();

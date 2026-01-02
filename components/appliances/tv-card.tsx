@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 interface TVCardProps {
   appliance: Appliance;
   apiKey: string;
+  onOperationSuccess?: () => void;
 }
 
 const TV_ICON_MAP: Record<string, React.ReactNode> = {
@@ -60,7 +61,7 @@ const TV_ICON_MAP: Record<string, React.ReactNode> = {
   ico_select: <Circle className="size-4" />,
 };
 
-export function TVCard({ appliance, apiKey }: TVCardProps) {
+export function TVCard({ appliance, apiKey, onOperationSuccess }: TVCardProps) {
   const tv: TV | null = appliance.tv;
 
   const sendTVCommand = useCallback(
@@ -74,12 +75,15 @@ export function TVCard({ appliance, apiKey }: TVCardProps) {
           },
           body: JSON.stringify({ button }),
         });
+        if (response.ok) {
+          setTimeout(() => onOperationSuccess?.(), 500);
+        }
         return response.ok;
       } catch {
         return false;
       }
     },
-    [appliance.id, apiKey]
+    [appliance.id, apiKey, onOperationSuccess]
   );
 
   const sendSignal = useCallback(
@@ -91,12 +95,15 @@ export function TVCard({ appliance, apiKey }: TVCardProps) {
             "X-Nature-Api-Key": apiKey,
           },
         });
+        if (response.ok) {
+          setTimeout(() => onOperationSuccess?.(), 500);
+        }
         return response.ok;
       } catch {
         return false;
       }
     },
-    [apiKey]
+    [apiKey, onOperationSuccess]
   );
 
   return (

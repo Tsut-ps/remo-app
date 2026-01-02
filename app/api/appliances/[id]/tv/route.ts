@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const NATURE_API_BASE = "https://api.nature.global/1";
+import { API_ENDPOINTS, getAuthHeaders } from "@/lib/config";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const clientApiKey = request.headers.get("X-Nature-Api-Key");
-  const apiKey = clientApiKey || process.env.NATURE_API_KEY;
+  const apiKey = request.headers.get("X-Nature-Api-Key");
   const { id } = await params;
 
   if (!apiKey) {
@@ -28,10 +26,10 @@ export async function POST(
       );
     }
 
-    const response = await fetch(`${NATURE_API_BASE}/appliances/${id}/tv`, {
+    const response = await fetch(API_ENDPOINTS.tv(id), {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        ...getAuthHeaders(apiKey),
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({ button }),

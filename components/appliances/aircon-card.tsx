@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 interface AirconCardProps {
   appliance: Appliance;
   apiKey: string;
+  onOperationSuccess?: () => void;
 }
 
 const MODE_ICONS: Record<string, React.ReactNode> = {
@@ -59,7 +60,7 @@ const MODE_COLORS: Record<string, string> = {
   blow: "bg-gray-500/10 text-gray-400 ring-gray-500/30",
 };
 
-export function AirconCard({ appliance, apiKey }: AirconCardProps) {
+export function AirconCard({ appliance, apiKey, onOperationSuccess }: AirconCardProps) {
   const aircon = appliance.aircon;
   const settings = appliance.settings;
   const isPowerOn = settings?.button !== "power-off";
@@ -80,12 +81,15 @@ export function AirconCard({ appliance, apiKey }: AirconCardProps) {
           },
           body: JSON.stringify(params),
         });
+        if (response.ok) {
+          setTimeout(() => onOperationSuccess?.(), 500);
+        }
         return response.ok;
       } catch {
         return false;
       }
     },
-    [appliance.id, apiKey]
+    [appliance.id, apiKey, onOperationSuccess]
   );
 
   const handlePowerOff = useCallback(async () => {
@@ -334,6 +338,9 @@ export function AirconCard({ appliance, apiKey }: AirconCardProps) {
                             headers: { "X-Nature-Api-Key": apiKey },
                           }
                         );
+                        if (res.ok) {
+                          setTimeout(() => onOperationSuccess?.(), 500);
+                        }
                         return res.ok;
                       } catch {
                         return false;

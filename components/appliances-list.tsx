@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import type { Appliance } from "@/lib/types/nature";
 import {
   LightCard,
@@ -11,18 +11,18 @@ import {
 } from "@/components/appliances";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertCircle } from "lucide-react";
-import { useApiKey } from "@/lib/api-key-context";
+import { useApiKey, useAppliances, useAppliancesLoading, useAppliancesError, useRefreshing } from "@/lib/store";
 
 interface AppliancesListProps {
   onRefresh?: () => void;
 }
 
 export function AppliancesList({ onRefresh }: AppliancesListProps) {
-  const { apiKey } = useApiKey();
-  const [appliances, setAppliances] = useState<Appliance[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [apiKey] = useApiKey();
+  const [appliances, setAppliances] = useAppliances();
+  const [loading, setLoading] = useAppliancesLoading();
+  const [error, setError] = useAppliancesError();
+  const [refreshing, setRefreshing] = useRefreshing();
 
   const fetchAppliances = useCallback(
     async (isRefresh = false) => {
@@ -54,7 +54,7 @@ export function AppliancesList({ onRefresh }: AppliancesListProps) {
         setRefreshing(false);
       }
     },
-    [apiKey]
+    [apiKey, setAppliances, setLoading, setError, setRefreshing]
   );
 
   useEffect(() => {
@@ -63,10 +63,10 @@ export function AppliancesList({ onRefresh }: AppliancesListProps) {
     }
   }, [apiKey, fetchAppliances]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     fetchAppliances(true);
     onRefresh?.();
-  };
+  }, [fetchAppliances, onRefresh]);
 
   const renderApplianceCard = (appliance: Appliance) => {
     switch (appliance.type) {
@@ -76,6 +76,7 @@ export function AppliancesList({ onRefresh }: AppliancesListProps) {
             key={appliance.id}
             appliance={appliance}
             apiKey={apiKey!}
+            onOperationSuccess={handleRefresh}
           />
         );
       case "AC":
@@ -84,15 +85,26 @@ export function AppliancesList({ onRefresh }: AppliancesListProps) {
             key={appliance.id}
             appliance={appliance}
             apiKey={apiKey!}
+            onOperationSuccess={handleRefresh}
           />
         );
       case "TV":
         return (
-          <TVCard key={appliance.id} appliance={appliance} apiKey={apiKey!} />
+          <TVCard
+            key={appliance.id}
+            appliance={appliance}
+            apiKey={apiKey!}
+            onOperationSuccess={handleRefresh}
+          />
         );
       default:
         return (
-          <IRCard key={appliance.id} appliance={appliance} apiKey={apiKey!} />
+          <IRCard
+            key={appliance.id}
+            appliance={appliance}
+            apiKey={apiKey!}
+            onOperationSuccess={handleRefresh}
+          />
         );
     }
   };

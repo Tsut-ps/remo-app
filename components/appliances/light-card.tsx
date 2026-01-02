@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 interface LightCardProps {
   appliance: Appliance;
   apiKey: string;
+  onOperationSuccess?: () => void;
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -51,7 +52,7 @@ const REQUIRES_POWER_ON = [
   "bright-down",
 ];
 
-export function LightCard({ appliance, apiKey }: LightCardProps) {
+export function LightCard({ appliance, apiKey, onOperationSuccess }: LightCardProps) {
   const light: Light | null = appliance.light;
   const isPowerOn = light?.state?.power === "on";
 
@@ -66,12 +67,16 @@ export function LightCard({ appliance, apiKey }: LightCardProps) {
           },
           body: JSON.stringify({ button }),
         });
+        if (response.ok) {
+          // 成功時に少し遅延して再取得（状態反映のため）
+          setTimeout(() => onOperationSuccess?.(), 500);
+        }
         return response.ok;
       } catch {
         return false;
       }
     },
-    [appliance.id, apiKey]
+    [appliance.id, apiKey, onOperationSuccess]
   );
 
   const sendSignal = useCallback(
@@ -83,12 +88,15 @@ export function LightCard({ appliance, apiKey }: LightCardProps) {
             "X-Nature-Api-Key": apiKey,
           },
         });
+        if (response.ok) {
+          setTimeout(() => onOperationSuccess?.(), 500);
+        }
         return response.ok;
       } catch {
         return false;
       }
     },
-    [apiKey]
+    [apiKey, onOperationSuccess]
   );
 
   const isButtonDisabled = (buttonName: string): boolean => {

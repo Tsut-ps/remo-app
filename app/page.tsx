@@ -1,22 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { AppliancesList } from "@/components/appliances-list";
 import { AppliancesLoadingSkeleton } from "@/components/appliances";
-import { ApiKeyProvider, useApiKey } from "@/lib/api-key-context";
+import { useApiKey, useHydrated } from "@/lib/store";
 import { ApiKeyDialog } from "@/components/api-key-dialog";
 import { Button } from "@/components/ui/button";
 import { Settings, Key } from "lucide-react";
 
-function HomeContent() {
-  const { apiKey, isLoading } = useApiKey();
+export default function Home() {
+  const [apiKey] = useApiKey();
+  const hydrated = useHydrated();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [initialSetupOpen, setInitialSetupOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleSettingsSaved = useCallback(() => {
+    // Trigger re-fetch by incrementing refresh key
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   // 初回ロード後、APIキーがなければ設定ダイアログを表示
-  const showInitialSetup = !isLoading && !apiKey;
+  const showInitialSetup = hydrated && !apiKey;
 
-  if (isLoading) {
+  if (!hydrated) {
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
@@ -60,7 +67,7 @@ function HomeContent() {
 
       <main className="container mx-auto px-4 py-8 flex-1">
         {apiKey ? (
-          <AppliancesList />
+          <AppliancesList key={refreshKey} />
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Key className="size-16 text-muted-foreground mb-4" />
@@ -88,6 +95,7 @@ function HomeContent() {
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         isInitialSetup={false}
+        onSaveSuccess={handleSettingsSaved}
       />
 
       {/* Initial Setup Dialog */}
@@ -95,15 +103,8 @@ function HomeContent() {
         open={showInitialSetup || initialSetupOpen}
         onOpenChange={setInitialSetupOpen}
         isInitialSetup={showInitialSetup}
+        onSaveSuccess={handleSettingsSaved}
       />
     </div>
-  );
-}
-
-export default function Home() {
-  return (
-    <ApiKeyProvider>
-      <HomeContent />
-    </ApiKeyProvider>
   );
 }

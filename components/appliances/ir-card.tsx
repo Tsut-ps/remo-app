@@ -17,9 +17,10 @@ import { Radio } from "lucide-react";
 interface IRCardProps {
   appliance: Appliance;
   apiKey: string;
+  onOperationSuccess?: () => void;
 }
 
-export function IRCard({ appliance, apiKey }: IRCardProps) {
+export function IRCard({ appliance, apiKey, onOperationSuccess }: IRCardProps) {
   const sendSignal = useCallback(
     async (signalId: string): Promise<boolean> => {
       try {
@@ -29,12 +30,15 @@ export function IRCard({ appliance, apiKey }: IRCardProps) {
             "X-Nature-Api-Key": apiKey,
           },
         });
+        if (response.ok) {
+          setTimeout(() => onOperationSuccess?.(), 500);
+        }
         return response.ok;
       } catch {
         return false;
       }
     },
-    [apiKey]
+    [apiKey, onOperationSuccess]
   );
 
   return (

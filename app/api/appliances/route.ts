@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Appliance } from "@/lib/types/nature";
-
-const NATURE_API_BASE = "https://api.nature.global/1";
+import { API_ENDPOINTS, getAuthHeaders } from "@/lib/config";
 
 export async function GET(request: NextRequest) {
-  // クライアントからのAPIキーを優先、なければ環境変数を使用
-  const clientApiKey = request.headers.get("X-Nature-Api-Key");
-  const apiKey = clientApiKey || process.env.NATURE_API_KEY;
+  const apiKey = request.headers.get("X-Nature-Api-Key");
 
   if (!apiKey) {
     return NextResponse.json(
@@ -19,12 +16,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const response = await fetch(`${NATURE_API_BASE}/appliances`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      // Revalidate every 30 seconds
-      next: { revalidate: 30 },
+    const response = await fetch(API_ENDPOINTS.appliances, {
+      headers: getAuthHeaders(apiKey),
+      cache: "no-store",
     });
 
     if (!response.ok) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,27 +12,29 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useApiKey } from "@/lib/api-key-context";
+import { useApiKey } from "@/lib/store";
 import { Eye, EyeOff, ExternalLink } from "lucide-react";
 
 interface ApiKeyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isInitialSetup?: boolean;
+  onSaveSuccess?: () => void;
 }
 
 export function ApiKeyDialog({
   open,
   onOpenChange,
   isInitialSetup = false,
+  onSaveSuccess,
 }: ApiKeyDialogProps) {
-  const { apiKey, setApiKey, clearApiKey } = useApiKey();
+  const [apiKey, setApiKey] = useApiKey();
   const [inputValue, setInputValue] = useState(apiKey || "");
   const [showKey, setShowKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!inputValue.trim()) {
       setError("APIキーを入力してください");
       return;
@@ -56,6 +58,7 @@ export function ApiKeyDialog({
 
       setApiKey(inputValue.trim());
       onOpenChange(false);
+      onSaveSuccess?.();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "APIキーの検証に失敗しました"
@@ -63,13 +66,13 @@ export function ApiKeyDialog({
     } finally {
       setTesting(false);
     }
-  };
+  }, [inputValue, setApiKey, onOpenChange, onSaveSuccess]);
 
-  const handleClear = () => {
-    clearApiKey();
+  const handleClear = useCallback(() => {
+    setApiKey("");
     setInputValue("");
     onOpenChange(false);
-  };
+  }, [setApiKey, onOpenChange]);
 
   return (
     <Dialog
