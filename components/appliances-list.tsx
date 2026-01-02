@@ -11,7 +11,13 @@ import {
 } from "@/components/appliances";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertCircle } from "lucide-react";
-import { useApiKey, useAppliances, useAppliancesLoading, useAppliancesError, useRefreshing } from "@/lib/store";
+import {
+  useApiKey,
+  useAppliances,
+  useAppliancesLoading,
+  useAppliancesError,
+  useRefreshing,
+} from "@/lib/store";
 
 interface AppliancesListProps {
   onRefresh?: () => void;

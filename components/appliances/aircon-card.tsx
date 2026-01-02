@@ -60,7 +60,11 @@ const MODE_COLORS: Record<string, string> = {
   blow: "bg-gray-500/10 text-gray-400 ring-gray-500/30",
 };
 
-export function AirconCard({ appliance, apiKey, onOperationSuccess }: AirconCardProps) {
+export function AirconCard({
+  appliance,
+  apiKey,
+  onOperationSuccess,
+}: AirconCardProps) {
   const aircon = appliance.aircon;
   const settings = appliance.settings;
   const isPowerOn = settings?.button !== "power-off";

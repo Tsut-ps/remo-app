@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
-import { STORAGE_KEYS } from '@/lib/config';
-import type { Appliance } from '@/lib/types/nature';
-import { useEffect, useState } from 'react';
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { STORAGE_KEYS } from "@/lib/config";
+import type { Appliance } from "@/lib/types/nature";
+import { useEffect, useState } from "react";
 
 // API Key atom with localStorage persistence
 export const apiKeyAtom = atomWithStorage<string | null>(
@@ -27,11 +27,11 @@ export const isRefreshingAtom = atom<boolean>(false);
 // Hydration hook for SSR compatibility
 export function useHydrated() {
   const [hydrated, setHydrated] = useState(false);
-  
+
   useEffect(() => {
     setHydrated(true);
   }, []);
-  
+
   return hydrated;
 }
 

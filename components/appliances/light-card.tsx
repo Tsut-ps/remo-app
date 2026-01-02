@@ -52,7 +52,11 @@ const REQUIRES_POWER_ON = [
   "bright-down",
 ];
 
-export function LightCard({ appliance, apiKey, onOperationSuccess }: LightCardProps) {
+export function LightCard({
+  appliance,
+  apiKey,
+  onOperationSuccess,
+}: LightCardProps) {
   const light: Light | null = appliance.light;
   const isPowerOn = light?.state?.power === "on";
 
