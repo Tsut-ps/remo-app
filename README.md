@@ -1,6 +1,6 @@
-<img width="1496" height="756" alt="image" src="https://github.com/user-attachments/assets/88019e22-ff5d-4249-af9e-f76ec02910cf" />
+<img width="1280" height="720" alt="Frame 97" src="https://github.com/user-attachments/assets/3e38a600-09bd-40ee-9fd0-51c6ecbbaf38" />
 
-# Nature Remo Controller
+# Nature Remo Web Controller
 
 Nature Remo を使って家電をブラウザから操作する Web アプリ  
 (Nature Remo Mini で動作検証済み)
