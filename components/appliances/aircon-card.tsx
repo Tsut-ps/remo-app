@@ -31,15 +31,38 @@ import {
   Thermometer,
   Wind,
   ArrowUpDown,
+  Snowflake,
+  Flame,
+  Droplets,
+  Fan,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AirconCardProps {
   appliance: Appliance;
+  apiKey: string;
 }
 
-export function AirconCard({ appliance }: AirconCardProps) {
+const MODE_ICONS: Record<string, React.ReactNode> = {
+  auto: <AirVent className="size-4" />,
+  cool: <Snowflake className="size-4" />,
+  warm: <Flame className="size-4" />,
+  dry: <Droplets className="size-4" />,
+  blow: <Fan className="size-4" />,
+};
+
+const MODE_COLORS: Record<string, string> = {
+  auto: "bg-green-500/10 text-green-500 ring-green-500/30",
+  cool: "bg-blue-500/10 text-blue-500 ring-blue-500/30",
+  warm: "bg-orange-500/10 text-orange-500 ring-orange-500/30",
+  dry: "bg-cyan-500/10 text-cyan-500 ring-cyan-500/30",
+  blow: "bg-gray-500/10 text-gray-400 ring-gray-500/30",
+};
+
+export function AirconCard({ appliance, apiKey }: AirconCardProps) {
   const aircon = appliance.aircon;
   const settings = appliance.settings;
+  const isPowerOn = settings?.button !== "power-off";
 
   const [mode, setMode] = useState(settings?.mode || "cool");
   const [temp, setTemp] = useState(settings?.temp || "24");
@@ -51,7 +74,10 @@ export function AirconCard({ appliance }: AirconCardProps) {
       try {
         const response = await fetch(`/api/appliances/${appliance.id}/aircon`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Nature-Api-Key": apiKey,
+          },
           body: JSON.stringify(params),
         });
         return response.ok;
@@ -59,7 +85,7 @@ export function AirconCard({ appliance }: AirconCardProps) {
         return false;
       }
     },
-    [appliance.id]
+    [appliance.id, apiKey]
   );
 
   const handlePowerOff = useCallback(async () => {
@@ -79,13 +105,26 @@ export function AirconCard({ appliance }: AirconCardProps) {
   const availableModes = aircon?.range.modes
     ? Object.keys(aircon.range.modes)
     : [];
+  const currentModeColor =
+    MODE_COLORS[settings?.mode || "auto"] || MODE_COLORS.auto;
 
   return (
-    <Card className="bg-card">
+    <Card
+      className={cn(
+        "bg-card transition-all",
+        isPowerOn ? `ring-2 ${currentModeColor.split(" ")[2]}` : "opacity-80"
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <AirVent className="size-5 text-blue-500" />
+            {isPowerOn ? (
+              MODE_ICONS[settings?.mode || "auto"] || (
+                <AirVent className="size-5" />
+              )
+            ) : (
+              <AirVent className="size-5 text-muted-foreground" />
+            )}
             <CardTitle className="text-lg">{appliance.nickname}</CardTitle>
           </div>
           <Badge variant="secondary">エアコン</Badge>
@@ -97,25 +136,57 @@ export function AirconCard({ appliance }: AirconCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Current Settings Display */}
-        {settings && (
-          <div className="flex flex-wrap gap-2 text-sm">
-            <Badge
-              variant={settings.button !== "power-off" ? "default" : "outline"}
-            >
-              {settings.button === "power-off" ? "オフ" : "オン"}
-            </Badge>
-            <Badge variant="outline">
-              {AC_MODE_LABELS[settings.mode] || settings.mode}
-            </Badge>
-            <Badge variant="outline">
-              {settings.temp}°{settings.temp_unit.toUpperCase()}
-            </Badge>
-            <Badge variant="outline">
-              風量: {AC_VOL_LABELS[settings.vol] || settings.vol}
-            </Badge>
-          </div>
-        )}
+        {/* Current State - 大きく表示 */}
+        <div
+          className={cn(
+            "rounded-lg p-4 text-center",
+            isPowerOn
+              ? currentModeColor.split(" ").slice(0, 2).join(" ")
+              : "bg-muted text-muted-foreground"
+          )}
+        >
+          {isPowerOn ? (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div
+                  className={cn(
+                    "size-3 rounded-full animate-pulse",
+                    settings?.mode === "cool"
+                      ? "bg-blue-500"
+                      : settings?.mode === "warm"
+                      ? "bg-orange-500"
+                      : settings?.mode === "dry"
+                      ? "bg-cyan-500"
+                      : settings?.mode === "blow"
+                      ? "bg-gray-400"
+                      : "bg-green-500"
+                  )}
+                />
+                <span className="text-lg font-semibold">
+                  {AC_MODE_LABELS[settings?.mode || ""] || settings?.mode}
+                </span>
+              </div>
+              <div className="text-3xl font-bold">
+                {settings?.temp}°{settings?.temp_unit?.toUpperCase()}
+              </div>
+              <div className="flex justify-center gap-4 mt-2 text-sm opacity-80">
+                <span>
+                  風量: {AC_VOL_LABELS[settings?.vol || ""] || settings?.vol}
+                </span>
+                <span>
+                  風向: {AC_DIR_LABELS[settings?.dir || ""] || settings?.dir}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-center gap-2">
+                <div className="size-3 rounded-full bg-muted-foreground" />
+                <span className="text-lg font-semibold">電源OFF</span>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Power Control */}
         <div className="flex gap-2">
@@ -123,20 +194,31 @@ export function AirconCard({ appliance }: AirconCardProps) {
             onClick={handleApplySettings}
             variant="default"
             size="sm"
+            className="flex-1"
           >
             <Power className="size-4" />
-            <span>電源オン / 設定適用</span>
+            <span>{isPowerOn ? "設定を適用" : "電源ON"}</span>
           </ActionButton>
-          <ActionButton onClick={handlePowerOff} variant="outline" size="sm">
+          <ActionButton
+            onClick={handlePowerOff}
+            variant="outline"
+            size="sm"
+            disabled={!isPowerOn}
+          >
             <PowerOff className="size-4" />
-            <span>電源オフ</span>
+            <span>OFF</span>
           </ActionButton>
         </div>
 
         <Separator />
 
         {/* Settings Controls */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div
+          className={cn(
+            "grid gap-4 sm:grid-cols-2 transition-opacity",
+            !isPowerOn && "opacity-50"
+          )}
+        >
           {/* Mode Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
@@ -150,7 +232,10 @@ export function AirconCard({ appliance }: AirconCardProps) {
               <SelectContent>
                 {availableModes.map((m) => (
                   <SelectItem key={m} value={m}>
-                    {AC_MODE_LABELS[m] || m}
+                    <span className="flex items-center gap-2">
+                      {MODE_ICONS[m]}
+                      {AC_MODE_LABELS[m] || m}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -173,7 +258,7 @@ export function AirconCard({ appliance }: AirconCardProps) {
                   <SelectContent>
                     {currentModeRange.temp.map((t) => (
                       <SelectItem key={t} value={t}>
-                        {t}°{aircon?.tempUnit.toUpperCase()}
+                        {t}°{aircon?.tempUnit?.toUpperCase()}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -244,7 +329,10 @@ export function AirconCard({ appliance }: AirconCardProps) {
                       try {
                         const res = await fetch(
                           `/api/signals/${signal.id}/send`,
-                          { method: "POST" }
+                          {
+                            method: "POST",
+                            headers: { "X-Nature-Api-Key": apiKey },
+                          }
                         );
                         return res.ok;
                       } catch {
@@ -267,7 +355,6 @@ export function AirconCard({ appliance }: AirconCardProps) {
         <div className="text-xs text-muted-foreground space-y-1">
           <p>デバイス: {appliance.device.name}</p>
           <p>シリアル: {appliance.device.serial_number}</p>
-          <p>ファームウェア: {appliance.device.firmware_version}</p>
           {settings?.updated_at && (
             <p>
               最終更新: {new Date(settings.updated_at).toLocaleString("ja-JP")}

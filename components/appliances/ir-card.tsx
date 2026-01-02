@@ -16,19 +16,26 @@ import { Radio } from "lucide-react";
 
 interface IRCardProps {
   appliance: Appliance;
+  apiKey: string;
 }
 
-export function IRCard({ appliance }: IRCardProps) {
-  const sendSignal = useCallback(async (signalId: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/signals/${signalId}/send`, {
-        method: "POST",
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }, []);
+export function IRCard({ appliance, apiKey }: IRCardProps) {
+  const sendSignal = useCallback(
+    async (signalId: string): Promise<boolean> => {
+      try {
+        const response = await fetch(`/api/signals/${signalId}/send`, {
+          method: "POST",
+          headers: {
+            "X-Nature-Api-Key": apiKey,
+          },
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    },
+    [apiKey]
+  );
 
   return (
     <Card className="bg-card">
@@ -75,7 +82,6 @@ export function IRCard({ appliance }: IRCardProps) {
         <div className="text-xs text-muted-foreground space-y-1">
           <p>デバイス: {appliance.device.name}</p>
           <p>シリアル: {appliance.device.serial_number}</p>
-          <p>ファームウェア: {appliance.device.firmware_version}</p>
         </div>
       </CardContent>
     </Card>

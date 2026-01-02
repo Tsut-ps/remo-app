@@ -1,15 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type { Appliance } from "@/lib/types/nature";
 
 const NATURE_API_BASE = "https://api.nature.global/1";
 
-export async function GET() {
-  const apiKey = process.env.NATURE_API_KEY;
+export async function GET(request: NextRequest) {
+  // クライアントからのAPIキーを優先、なければ環境変数を使用
+  const clientApiKey = request.headers.get("X-Nature-Api-Key");
+  const apiKey = clientApiKey || process.env.NATURE_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "NATURE_API_KEY is not configured" },
-      { status: 500 }
+      {
+        error:
+          "APIキーが設定されていません。設定画面からAPIキーを入力してください。",
+      },
+      { status: 401 }
     );
   }
 

@@ -14,6 +14,7 @@ import { ActionButton } from "@/components/action-button";
 import type { Appliance, Light } from "@/lib/types/nature";
 import {
   Lightbulb,
+  LightbulbOff,
   Power,
   PowerOff,
   Sun,
@@ -22,9 +23,11 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LightCardProps {
   appliance: Appliance;
+  apiKey: string;
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -39,15 +42,28 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   ico_lightdown: <ChevronDown className="size-4" />,
 };
 
-export function LightCard({ appliance }: LightCardProps) {
+// OFFの時に使えないボタン
+const REQUIRES_POWER_ON = [
+  "on-100",
+  "on-favorite",
+  "night",
+  "bright-up",
+  "bright-down",
+];
+
+export function LightCard({ appliance, apiKey }: LightCardProps) {
   const light: Light | null = appliance.light;
+  const isPowerOn = light?.state?.power === "on";
 
   const sendLightCommand = useCallback(
     async (button: string): Promise<boolean> => {
       try {
         const response = await fetch(`/api/appliances/${appliance.id}/light`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Nature-Api-Key": apiKey,
+          },
           body: JSON.stringify({ button }),
         });
         return response.ok;
@@ -55,26 +71,49 @@ export function LightCard({ appliance }: LightCardProps) {
         return false;
       }
     },
-    [appliance.id]
+    [appliance.id, apiKey]
   );
 
-  const sendSignal = useCallback(async (signalId: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/signals/${signalId}/send`, {
-        method: "POST",
-      });
-      return response.ok;
-    } catch {
-      return false;
+  const sendSignal = useCallback(
+    async (signalId: string): Promise<boolean> => {
+      try {
+        const response = await fetch(`/api/signals/${signalId}/send`, {
+          method: "POST",
+          headers: {
+            "X-Nature-Api-Key": apiKey,
+          },
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    },
+    [apiKey]
+  );
+
+  const isButtonDisabled = (buttonName: string): boolean => {
+    // 電源がOFFの時、一部のボタンは使えない
+    if (!isPowerOn && REQUIRES_POWER_ON.includes(buttonName)) {
+      return true;
     }
-  }, []);
+    return false;
+  };
 
   return (
-    <Card className="bg-card">
+    <Card
+      className={cn(
+        "bg-card transition-all",
+        isPowerOn ? "ring-2 ring-yellow-500/30" : "opacity-80"
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Lightbulb className="size-5 text-yellow-500" />
+            {isPowerOn ? (
+              <Lightbulb className="size-5 text-yellow-500" />
+            ) : (
+              <LightbulbOff className="size-5 text-muted-foreground" />
+            )}
             <CardTitle className="text-lg">{appliance.nickname}</CardTitle>
           </div>
           <Badge variant="secondary">照明</Badge>
@@ -86,36 +125,68 @@ export function LightCard({ appliance }: LightCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Current State */}
-        {light?.state && (
-          <div className="flex gap-2 text-sm text-muted-foreground">
-            <span>状態:</span>
-            <Badge variant={light.state.power === "on" ? "default" : "outline"}>
-              {light.state.power === "on" ? "オン" : "オフ"}
-            </Badge>
-            {light.state.brightness && (
-              <Badge variant="outline">{light.state.brightness}</Badge>
+        {/* Current State - 大きく表示 */}
+        <div
+          className={cn(
+            "rounded-lg p-4 text-center",
+            isPowerOn ? "bg-yellow-500/10" : "bg-muted"
+          )}
+        >
+          <div className="flex items-center justify-center gap-3">
+            {isPowerOn ? (
+              <>
+                <div className="size-3 rounded-full bg-yellow-500 animate-pulse" />
+                <span className="text-lg font-semibold text-yellow-500">
+                  電源ON
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="size-3 rounded-full bg-muted-foreground" />
+                <span className="text-lg font-semibold text-muted-foreground">
+                  電源OFF
+                </span>
+              </>
             )}
           </div>
-        )}
+          {light?.state?.brightness && isPowerOn && (
+            <p className="text-sm text-muted-foreground mt-1">
+              明るさ: {light.state.brightness}
+            </p>
+          )}
+          {light?.state?.last_button && (
+            <p className="text-xs text-muted-foreground mt-1">
+              最後の操作: {light.state.last_button}
+            </p>
+          )}
+        </div>
 
         {/* Light Buttons */}
         {light?.buttons && light.buttons.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-2">コントロール</h4>
             <div className="flex flex-wrap gap-2">
-              {light.buttons.map((button) => (
-                <ActionButton
-                  key={button.name}
-                  onClick={() => sendLightCommand(button.name)}
-                  variant="outline"
-                  size="sm"
-                >
-                  {ICON_MAP[button.image] || null}
-                  <span>{button.label}</span>
-                </ActionButton>
-              ))}
+              {light.buttons.map((button) => {
+                const disabled = isButtonDisabled(button.name);
+                return (
+                  <ActionButton
+                    key={button.name}
+                    onClick={() => sendLightCommand(button.name)}
+                    variant={button.name === "on" ? "default" : "outline"}
+                    size="sm"
+                    disabled={disabled}
+                  >
+                    {ICON_MAP[button.image] || null}
+                    <span>{button.label}</span>
+                  </ActionButton>
+                );
+              })}
             </div>
+            {!isPowerOn && (
+              <p className="text-xs text-muted-foreground mt-2">
+                ※ 一部のボタンは電源ONの状態でのみ使用可能です
+              </p>
+            )}
           </div>
         )}
 
@@ -147,7 +218,6 @@ export function LightCard({ appliance }: LightCardProps) {
         <div className="text-xs text-muted-foreground space-y-1">
           <p>デバイス: {appliance.device.name}</p>
           <p>シリアル: {appliance.device.serial_number}</p>
-          <p>ファームウェア: {appliance.device.firmware_version}</p>
         </div>
       </CardContent>
     </Card>

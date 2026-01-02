@@ -1,10 +1,40 @@
-import { AppliancesList } from "@/components/appliances-list";
-import { Suspense } from "react";
-import { AppliancesLoadingSkeleton } from "@/components/appliances";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { AppliancesList } from "@/components/appliances-list";
+import { AppliancesLoadingSkeleton } from "@/components/appliances";
+import { ApiKeyProvider, useApiKey } from "@/lib/api-key-context";
+import { ApiKeyDialog } from "@/components/api-key-dialog";
+import { Button } from "@/components/ui/button";
+import { Settings, Key } from "lucide-react";
+
+function HomeContent() {
+  const { apiKey, isLoading } = useApiKey();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [initialSetupOpen, setInitialSetupOpen] = useState(false);
+
+  // 初回ロード後、APIキーがなければ設定ダイアログを表示
+  const showInitialSetup = !isLoading && !apiKey;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <h1 className="text-2xl font-bold text-foreground">
+              Nature Remo Controller
+            </h1>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-8">
+          <AppliancesLoadingSkeleton />
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -16,21 +46,64 @@ export default function Home() {
                 スマートホームデバイスをブラウザから操作
               </p>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSettingsOpen(true)}
+              title="設定"
+            >
+              <Settings className="size-5" />
+            </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <Suspense fallback={<AppliancesLoadingSkeleton />}>
+      <main className="container mx-auto px-4 py-8 flex-1">
+        {apiKey ? (
           <AppliancesList />
-        </Suspense>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Key className="size-16 text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">
+              APIキーが設定されていません
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Nature Remoを操作するには、APIキーを設定してください。
+            </p>
+            <Button onClick={() => setInitialSetupOpen(true)}>
+              APIキーを設定
+            </Button>
+          </div>
+        )}
       </main>
 
-      <footer className="border-t border-border mt-auto py-4">
+      <footer className="border-t border-border py-4 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>Nature Remo Mini で家電を操作</p>
         </div>
       </footer>
+
+      {/* Settings Dialog */}
+      <ApiKeyDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        isInitialSetup={false}
+      />
+
+      {/* Initial Setup Dialog */}
+      <ApiKeyDialog
+        open={showInitialSetup || initialSetupOpen}
+        onOpenChange={setInitialSetupOpen}
+        isInitialSetup={showInitialSetup}
+      />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <ApiKeyProvider>
+      <HomeContent />
+    </ApiKeyProvider>
   );
 }

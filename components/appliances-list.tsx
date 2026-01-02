@@ -11,51 +11,89 @@ import {
 } from "@/components/appliances";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertCircle } from "lucide-react";
+import { useApiKey } from "@/lib/api-key-context";
 
-export function AppliancesList() {
+interface AppliancesListProps {
+  onRefresh?: () => void;
+}
+
+export function AppliancesList({ onRefresh }: AppliancesListProps) {
+  const { apiKey } = useApiKey();
   const [appliances, setAppliances] = useState<Appliance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchAppliances = useCallback(async (isRefresh = false) => {
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    setError(null);
+  const fetchAppliances = useCallback(
+    async (isRefresh = false) => {
+      if (!apiKey) return;
 
-    try {
-      const response = await fetch("/api/appliances");
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to fetch appliances");
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
       }
-      const data: Appliance[] = await response.json();
-      setAppliances(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      setError(null);
+
+      try {
+        const response = await fetch("/api/appliances", {
+          headers: {
+            "X-Nature-Api-Key": apiKey,
+          },
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || "Failed to fetch appliances");
+        }
+        const data: Appliance[] = await response.json();
+        setAppliances(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [apiKey]
+  );
 
   useEffect(() => {
-    fetchAppliances();
-  }, [fetchAppliances]);
+    if (apiKey) {
+      fetchAppliances();
+    }
+  }, [apiKey, fetchAppliances]);
+
+  const handleRefresh = () => {
+    fetchAppliances(true);
+    onRefresh?.();
+  };
 
   const renderApplianceCard = (appliance: Appliance) => {
     switch (appliance.type) {
       case "LIGHT":
-        return <LightCard key={appliance.id} appliance={appliance} />;
+        return (
+          <LightCard
+            key={appliance.id}
+            appliance={appliance}
+            apiKey={apiKey!}
+          />
+        );
       case "AC":
-        return <AirconCard key={appliance.id} appliance={appliance} />;
+        return (
+          <AirconCard
+            key={appliance.id}
+            appliance={appliance}
+            apiKey={apiKey!}
+          />
+        );
       case "TV":
-        return <TVCard key={appliance.id} appliance={appliance} />;
+        return (
+          <TVCard key={appliance.id} appliance={appliance} apiKey={apiKey!} />
+        );
       default:
-        return <IRCard key={appliance.id} appliance={appliance} />;
+        return (
+          <IRCard key={appliance.id} appliance={appliance} apiKey={apiKey!} />
+        );
     }
   };
 
@@ -85,7 +123,7 @@ export function AppliancesList() {
         <p className="text-muted-foreground mb-4">
           登録されている家電がありません
         </p>
-        <Button onClick={() => fetchAppliances(true)} variant="outline">
+        <Button onClick={handleRefresh} variant="outline">
           <RefreshCw className="size-4 mr-2" />
           更新
         </Button>
@@ -97,7 +135,7 @@ export function AppliancesList() {
     <div className="space-y-6">
       <div className="flex justify-end">
         <Button
-          onClick={() => fetchAppliances(true)}
+          onClick={handleRefresh}
           variant="outline"
           size="sm"
           disabled={refreshing}

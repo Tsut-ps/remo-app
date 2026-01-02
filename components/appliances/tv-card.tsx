@@ -30,9 +30,11 @@ import {
   Menu,
   Circle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TVCardProps {
   appliance: Appliance;
+  apiKey: string;
 }
 
 const TV_ICON_MAP: Record<string, React.ReactNode> = {
@@ -58,7 +60,7 @@ const TV_ICON_MAP: Record<string, React.ReactNode> = {
   ico_select: <Circle className="size-4" />,
 };
 
-export function TVCard({ appliance }: TVCardProps) {
+export function TVCard({ appliance, apiKey }: TVCardProps) {
   const tv: TV | null = appliance.tv;
 
   const sendTVCommand = useCallback(
@@ -66,7 +68,10 @@ export function TVCard({ appliance }: TVCardProps) {
       try {
         const response = await fetch(`/api/appliances/${appliance.id}/tv`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Nature-Api-Key": apiKey,
+          },
           body: JSON.stringify({ button }),
         });
         return response.ok;
@@ -74,22 +79,28 @@ export function TVCard({ appliance }: TVCardProps) {
         return false;
       }
     },
-    [appliance.id]
+    [appliance.id, apiKey]
   );
 
-  const sendSignal = useCallback(async (signalId: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/signals/${signalId}/send`, {
-        method: "POST",
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }, []);
+  const sendSignal = useCallback(
+    async (signalId: string): Promise<boolean> => {
+      try {
+        const response = await fetch(`/api/signals/${signalId}/send`, {
+          method: "POST",
+          headers: {
+            "X-Nature-Api-Key": apiKey,
+          },
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    },
+    [apiKey]
+  );
 
   return (
-    <Card className="bg-card">
+    <Card className={cn("bg-card transition-all")}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -106,10 +117,10 @@ export function TVCard({ appliance }: TVCardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current State */}
-        {tv?.state && (
-          <div className="flex gap-2 text-sm text-muted-foreground">
-            <span>入力:</span>
-            <Badge variant="outline">{tv.state.input || "不明"}</Badge>
+        {tv?.state && tv.state.input && (
+          <div className="rounded-lg bg-purple-500/10 p-3 text-center">
+            <p className="text-sm text-muted-foreground">入力</p>
+            <p className="font-semibold text-purple-400">{tv.state.input}</p>
           </div>
         )}
 
@@ -122,7 +133,7 @@ export function TVCard({ appliance }: TVCardProps) {
                 <ActionButton
                   key={button.name}
                   onClick={() => sendTVCommand(button.name)}
-                  variant="outline"
+                  variant={button.name === "power" ? "default" : "outline"}
                   size="sm"
                 >
                   {TV_ICON_MAP[button.image] || null}
@@ -161,7 +172,6 @@ export function TVCard({ appliance }: TVCardProps) {
         <div className="text-xs text-muted-foreground space-y-1">
           <p>デバイス: {appliance.device.name}</p>
           <p>シリアル: {appliance.device.serial_number}</p>
-          <p>ファームウェア: {appliance.device.firmware_version}</p>
         </div>
       </CardContent>
     </Card>

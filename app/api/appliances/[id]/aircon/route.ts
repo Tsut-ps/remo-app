@@ -6,13 +6,14 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const apiKey = process.env.NATURE_API_KEY;
+  const clientApiKey = request.headers.get("X-Nature-Api-Key");
+  const apiKey = clientApiKey || process.env.NATURE_API_KEY;
   const { id } = await params;
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "NATURE_API_KEY is not configured" },
-      { status: 500 }
+      { error: "APIキーが設定されていません" },
+      { status: 401 }
     );
   }
 
