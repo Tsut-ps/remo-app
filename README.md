@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nature Remo Controller
 
-## Getting Started
+Nature Remo Mini を使って家電をブラウザから操作する Web アプリ。
 
-First, run the development server:
+## 機能
+
+- 🏠 **家電一覧表示** - 登録されている全ての家電を表示
+- 💡 **照明操作** - ON/OFF、明るさ調整
+- ❄️ **エアコン操作** - 温度、モード、風量、風向の設定
+- 📺 **TV 操作** - 電源、音量、チャンネル操作
+- 📡 **IR リモコン** - カスタム赤外線信号の送信
+- 🔑 **API キー管理** - ブラウザに安全に保存
+
+## ローカル開発
 
 ```bash
+# 依存関係をインストール
+npm install
+
+# 開発サーバーを起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) でアプリが起動します。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## GitHub Pages へのデプロイ
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 自動デプロイ（推奨）
 
-## Learn More
+1. GitHub リポジトリを作成
+2. コードをプッシュ:
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/YOUR_USERNAME/remo-app.git
+   git push -u origin main
+   ```
+3. GitHub リポジトリの設定:
+   - **Settings** → **Pages** → **Source** で "GitHub Actions" を選択
+4. `main` ブランチにプッシュすると自動でデプロイされます
 
-To learn more about Next.js, take a look at the following resources:
+### 手動デプロイ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+# ./out ディレクトリの内容をホスティングサービスにアップロード
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 技術スタック
 
-## Deploy on Vercel
+- [Next.js 16](https://nextjs.org/) - React フレームワーク
+- [shadcn/ui](https://ui.shadcn.com/) - UI コンポーネント
+- [Tailwind CSS v4](https://tailwindcss.com/) - スタイリング
+- [Jotai](https://jotai.org/) - 状態管理
+- [Lucide React](https://lucide.dev/) - アイコン
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## API キーの取得
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. [Nature Home](https://home.nature.global/) にアクセス
+2. ログイン後、設定 → API を選択
+3. アクセストークンを生成
+
+## ライセンス
+
+MIT

@@ -25,6 +25,10 @@ import {
   AC_VOL_LABELS,
 } from "@/lib/types/nature";
 import {
+  sendAirconCommand as sendAirconApi,
+  sendSignal as sendSignalApi,
+} from "@/lib/api-client";
+import {
   AirVent,
   Power,
   PowerOff,
@@ -77,23 +81,31 @@ export function AirconCard({
   const sendAirconCommand = useCallback(
     async (params: AirConParams): Promise<boolean> => {
       try {
-        const response = await fetch(`/api/appliances/${appliance.id}/aircon`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Nature-Api-Key": apiKey,
-          },
-          body: JSON.stringify(params),
-        });
-        if (response.ok) {
+        const ok = await sendAirconApi(apiKey, appliance.id, params);
+        if (ok) {
           setTimeout(() => onOperationSuccess?.(), 500);
         }
-        return response.ok;
+        return ok;
       } catch {
         return false;
       }
     },
     [appliance.id, apiKey, onOperationSuccess]
+  );
+
+  const sendSignal = useCallback(
+    async (signalId: string): Promise<boolean> => {
+      try {
+        const ok = await sendSignalApi(apiKey, signalId);
+        if (ok) {
+          setTimeout(() => onOperationSuccess?.(), 500);
+        }
+        return ok;
+      } catch {
+        return false;
+      }
+    },
+    [apiKey, onOperationSuccess]
   );
 
   const handlePowerOff = useCallback(async () => {
@@ -333,23 +345,7 @@ export function AirconCard({
                 {appliance.signals.map((signal) => (
                   <ActionButton
                     key={signal.id}
-                    onClick={async () => {
-                      try {
-                        const res = await fetch(
-                          `/api/signals/${signal.id}/send`,
-                          {
-                            method: "POST",
-                            headers: { "X-Nature-Api-Key": apiKey },
-                          }
-                        );
-                        if (res.ok) {
-                          setTimeout(() => onOperationSuccess?.(), 500);
-                        }
-                        return res.ok;
-                      } catch {
-                        return false;
-                      }
-                    }}
+                    onClick={() => sendSignal(signal.id)}
                     variant="outline"
                     size="sm"
                   >

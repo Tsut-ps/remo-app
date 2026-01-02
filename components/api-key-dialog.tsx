@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useApiKey } from "@/lib/store";
+import { fetchAppliances } from "@/lib/api-client";
 import { Eye, EyeOff, ExternalLink } from "lucide-react";
 
 interface ApiKeyDialogProps {
@@ -44,17 +45,8 @@ export function ApiKeyDialog({
     setError(null);
 
     try {
-      // Test the API key by making a request
-      const response = await fetch("/api/appliances", {
-        headers: {
-          "X-Nature-Api-Key": inputValue.trim(),
-        },
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "APIキーが無効です");
-      }
+      // Test the API key by making a request directly to Nature API
+      await fetchAppliances(inputValue.trim());
 
       setApiKey(inputValue.trim());
       onOpenChange(false);

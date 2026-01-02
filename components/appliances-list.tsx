@@ -18,6 +18,7 @@ import {
   useAppliancesError,
   useRefreshing,
 } from "@/lib/store";
+import { fetchAppliances as fetchAppliancesApi } from "@/lib/api-client";
 
 interface AppliancesListProps {
   onRefresh?: () => void;
@@ -42,16 +43,7 @@ export function AppliancesList({ onRefresh }: AppliancesListProps) {
       setError(null);
 
       try {
-        const response = await fetch("/api/appliances", {
-          headers: {
-            "X-Nature-Api-Key": apiKey,
-          },
-        });
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || "Failed to fetch appliances");
-        }
-        const data: Appliance[] = await response.json();
+        const data = await fetchAppliancesApi(apiKey);
         setAppliances(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");

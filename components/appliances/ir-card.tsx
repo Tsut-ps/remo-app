@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ActionButton } from "@/components/action-button";
 import type { Appliance } from "@/lib/types/nature";
+import { sendSignal as sendSignalApi } from "@/lib/api-client";
 import { Radio } from "lucide-react";
 
 interface IRCardProps {
@@ -24,16 +25,11 @@ export function IRCard({ appliance, apiKey, onOperationSuccess }: IRCardProps) {
   const sendSignal = useCallback(
     async (signalId: string): Promise<boolean> => {
       try {
-        const response = await fetch(`/api/signals/${signalId}/send`, {
-          method: "POST",
-          headers: {
-            "X-Nature-Api-Key": apiKey,
-          },
-        });
-        if (response.ok) {
+        const ok = await sendSignalApi(apiKey, signalId);
+        if (ok) {
           setTimeout(() => onOperationSuccess?.(), 500);
         }
-        return response.ok;
+        return ok;
       } catch {
         return false;
       }

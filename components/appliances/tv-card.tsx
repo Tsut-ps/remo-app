@@ -13,6 +13,10 @@ import { Separator } from "@/components/ui/separator";
 import { ActionButton } from "@/components/action-button";
 import type { Appliance, TV } from "@/lib/types/nature";
 import {
+  sendTVCommand as sendTVApi,
+  sendSignal as sendSignalApi,
+} from "@/lib/api-client";
+import {
   Tv,
   Power,
   Volume2,
@@ -67,18 +71,11 @@ export function TVCard({ appliance, apiKey, onOperationSuccess }: TVCardProps) {
   const sendTVCommand = useCallback(
     async (button: string): Promise<boolean> => {
       try {
-        const response = await fetch(`/api/appliances/${appliance.id}/tv`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Nature-Api-Key": apiKey,
-          },
-          body: JSON.stringify({ button }),
-        });
-        if (response.ok) {
+        const ok = await sendTVApi(apiKey, appliance.id, button);
+        if (ok) {
           setTimeout(() => onOperationSuccess?.(), 500);
         }
-        return response.ok;
+        return ok;
       } catch {
         return false;
       }
@@ -89,16 +86,11 @@ export function TVCard({ appliance, apiKey, onOperationSuccess }: TVCardProps) {
   const sendSignal = useCallback(
     async (signalId: string): Promise<boolean> => {
       try {
-        const response = await fetch(`/api/signals/${signalId}/send`, {
-          method: "POST",
-          headers: {
-            "X-Nature-Api-Key": apiKey,
-          },
-        });
-        if (response.ok) {
+        const ok = await sendSignalApi(apiKey, signalId);
+        if (ok) {
           setTimeout(() => onOperationSuccess?.(), 500);
         }
-        return response.ok;
+        return ok;
       } catch {
         return false;
       }

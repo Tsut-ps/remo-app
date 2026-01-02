@@ -13,6 +13,10 @@ import { Separator } from "@/components/ui/separator";
 import { ActionButton } from "@/components/action-button";
 import type { Appliance, Light } from "@/lib/types/nature";
 import {
+  sendLightCommand as sendLightApi,
+  sendSignal as sendSignalApi,
+} from "@/lib/api-client";
+import {
   Lightbulb,
   LightbulbOff,
   Power,
@@ -63,19 +67,11 @@ export function LightCard({
   const sendLightCommand = useCallback(
     async (button: string): Promise<boolean> => {
       try {
-        const response = await fetch(`/api/appliances/${appliance.id}/light`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Nature-Api-Key": apiKey,
-          },
-          body: JSON.stringify({ button }),
-        });
-        if (response.ok) {
-          // 成功時に少し遅延して再取得（状態反映のため）
+        const ok = await sendLightApi(apiKey, appliance.id, button);
+        if (ok) {
           setTimeout(() => onOperationSuccess?.(), 500);
         }
-        return response.ok;
+        return ok;
       } catch {
         return false;
       }
@@ -86,16 +82,11 @@ export function LightCard({
   const sendSignal = useCallback(
     async (signalId: string): Promise<boolean> => {
       try {
-        const response = await fetch(`/api/signals/${signalId}/send`, {
-          method: "POST",
-          headers: {
-            "X-Nature-Api-Key": apiKey,
-          },
-        });
-        if (response.ok) {
+        const ok = await sendSignalApi(apiKey, signalId);
+        if (ok) {
           setTimeout(() => onOperationSuccess?.(), 500);
         }
-        return response.ok;
+        return ok;
       } catch {
         return false;
       }
