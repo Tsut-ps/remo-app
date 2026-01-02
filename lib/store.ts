@@ -4,7 +4,7 @@ import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { STORAGE_KEYS } from "@/lib/config";
 import type { Appliance } from "@/lib/types/nature";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 // API Key atom with localStorage persistence
 export const apiKeyAtom = atomWithStorage<string | null>(
@@ -24,15 +24,14 @@ export const errorAtom = atom<string | null>(null);
 // Refreshing state atom
 export const isRefreshingAtom = atom<boolean>(false);
 
-// Hydration hook for SSR compatibility
+// Hydration hook for SSR compatibility (using useSyncExternalStore to avoid useEffect warning)
+const emptySubscribe = () => () => {};
 export function useHydrated() {
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  return hydrated;
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 }
 
 // Custom hooks for convenience
