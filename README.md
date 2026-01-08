@@ -1,4 +1,6 @@
-# Nature Remo Controller
+<img width="1280" height="640" alt="Frame 97" src="https://github.com/user-attachments/assets/ab0954a7-e085-466c-bb23-1ac088bb598d" />
+
+# Nature Remo Web Controller
 
 Nature Remo を使って家電をブラウザから操作する Web アプリ  
 (Nature Remo mini / Nature Remo Lapis で動作検証済み)
@@ -54,6 +56,11 @@ npm run build
 1. [Nature Home](https://home.nature.global/) にアクセス
 2. ログイン後、設定 → API を選択
 3. アクセストークンを生成
+
+## 使用について
+
+好きに使ってもらってOKです  
+※これを使用したことによって何らかの損害が起こったとしても、責任は負いません
 
 ## ライセンス
 
