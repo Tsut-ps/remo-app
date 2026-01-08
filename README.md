@@ -1,7 +1,7 @@
 # Nature Remo Controller
 
 Nature Remo を使って家電をブラウザから操作する Web アプリ  
-(Nature Remo Mini で動作検証済み)
+(Nature Remo mini / Nature Remo Lapis で動作検証済み)
 
 ## 機能
 
