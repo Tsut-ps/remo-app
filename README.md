@@ -1,4 +1,4 @@
-<img width="1280" height="640" alt="Frame 97" src="https://github.com/user-attachments/assets/ab0954a7-e085-466c-bb23-1ac088bb598d" />
+<img width="1280" height="720" alt="Frame 97" src="https://github.com/user-attachments/assets/af49bddd-0549-4de5-be9e-478ae2caa4ec" />
 
 # Nature Remo Web Controller
 
